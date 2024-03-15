@@ -5,6 +5,7 @@ import ElipsisIcon from '../icons/ElipsisIcon';
 import { url } from '../service';
 import Filter from '../components/Filter';
 import { filterList } from '../utils';
+import RingLoading from '../components/RingLoader';
 
 const initialFilterState = {
   searchValue: '',
@@ -16,6 +17,7 @@ const Users = () => {
   const [filterValue, setFilterValue] = useState('all');
   const [filterState, setFilterState] = useState(initialFilterState);
   const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [indexes, setIndexes] = useState({
     start: 0,
     end: 0
@@ -55,11 +57,14 @@ const Users = () => {
 
   const fetchData = async () => {
     try {
+      setLoading(true);
       const res = await fetch(url);
       const data = await res.json();
       setUsersData(data?.data);
+      setLoading(false);
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
   useEffect(() => {
@@ -117,26 +122,33 @@ const Users = () => {
   return (
     <DashboardLayout pageTitle="Users">
       <section className="flex flex-col">
-        <div className="mb-4">
-          <Filter
-            filterList={filterList}
-            filterValue={filterValue}
-            onChange={(val) => setFilterValue(val)}
-          />
-        </div>
-
-        <Table
-          data={filteredData}
-          columns={columns}
-          total={usersData.length}
-          onPageNumberChange={(val) => handleChange('pageNumber', val)}
-          currentPageNumber={filterState.pageNumber}
-          currentPageSize={filterState.pageSize}
-          onNextClick={onNextClick}
-          onPreviousClick={onPreviousClick}
-          startIndex={indexes.start + 1}
-          endIndex={indexes.end}
-        />
+        {loading ? (
+          <div className="w-full h-80 flex items-center justify-center">
+            <RingLoading />
+          </div>
+        ) : (
+          <>
+            <div className="mb-4">
+              <Filter
+                filterList={filterList}
+                filterValue={filterValue}
+                onChange={(val) => setFilterValue(val)}
+              />
+            </div>
+            <Table
+              data={filteredData}
+              columns={columns}
+              total={usersData.length}
+              onPageNumberChange={(val) => handleChange('pageNumber', val)}
+              currentPageNumber={filterState.pageNumber}
+              currentPageSize={filterState.pageSize}
+              onNextClick={onNextClick}
+              onPreviousClick={onPreviousClick}
+              startIndex={indexes.start + 1}
+              endIndex={indexes.end}
+            />
+          </>
+        )}
       </section>
     </DashboardLayout>
   );
